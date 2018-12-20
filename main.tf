@@ -1,3 +1,5 @@
+provider "google-beta" {}
+
 resource "google_folder" "demo_folder" {
   display_name = "Three Tier XPN Demo Folder"
   parent       = "organizations/794966888850"
@@ -29,6 +31,16 @@ resource "google_project" "demo_todo_project" {
 
 resource "google_compute_shared_vpc_host_project" "host" {
   project = "${google_project.xpn_host_project.project_id}"
+}
+
+resource "google_compute_shared_vpc_service_project" "service_guestbook" {
+  host_project    = "${google_project.xpn_host_project.project_id}"
+  service_project = "${google_project.demo_guestbook_project.project_id}"
+}
+
+resource "google_compute_shared_vpc_service_project" "service_todo" {
+  host_project    = "${google_project.xpn_host_project.project_id}"
+  service_project = "${google_project.demo_todo_project.project_id}"
 }
 
 module "shared-vpc" {
@@ -102,4 +114,45 @@ resource "google_service_account" "todo-db-sa" {
   account_id   = "todo-db"
   display_name = "Todo DB Tier SA "
   project      = "${google_project.demo_todo_project.project_id}"
+}
+
+module "guestbook_project_iam_bindings" {
+  source = "github.com/terraform-google-modules/terraform-google-iam"
+
+  projects = ["${google_project.demo_guestbook_project.project_id}"]
+
+  bindings = {
+    "roles/viewer" = [
+      "group:guestbook-eng@reechar.co",
+    ]
+
+    "roles/compute.admin" = [
+      "group:guestbook-eng@reechar.co",
+    ]
+  }
+}
+
+module "guestbook_web_subnet_iam_binding" {
+  source = "github.com/terraform-google-modules/terraform-google-iam"
+
+  subnets = ["projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/web-tier-subnet"]
+
+  bindings = {
+    "roles/compute.networkUser" = [
+      "group:guestbook-web-dev@reechar.co",
+    ]
+  }
+}
+
+module "guestbook_web_sa_iam_binding" {
+  source = "github.com/terraform-google-modules/terraform-google-iam"
+
+  project          = "${google_project.demo_guestbook_project.project_id}"
+  service_accounts = ["${google_service_account.guestbook-web-sa.email}"]
+
+  bindings = {
+    "roles/iam.serviceAccountUser" = [
+      "group:guestbook-web-dev@reechar.co",
+    ]
+  }
 }
