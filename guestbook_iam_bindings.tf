@@ -8,7 +8,7 @@ module "guestbook_project_iam_bindings" {
       "group:guestbook-eng@reechar.co",
     ]
 
-    "roles/compute.admin" = [
+    "roles/compute.instanceAdmin.v1" = [
       "group:guestbook-eng@reechar.co",
     ]
   }

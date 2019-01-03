@@ -8,7 +8,7 @@ module "todo_project_iam_bindings" {
       "group:todo-eng@reechar.co",
     ]
 
-    "roles/compute.admin" = [
+    "roles/compute.instanceAdmin.v1" = [
       "group:todo-eng@reechar.co",
     ]
   }
