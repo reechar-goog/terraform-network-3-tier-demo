@@ -11,7 +11,7 @@ resource "google_compute_instance" "guestbook_web" {
   }
 
   network_interface {
-    subnetwork = "projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/web-tier-subnet"
+    subnetwork = "${google_compute_subnetwork.web_tier_subnet.self_link}"
 
     access_config {
       // Ephemeral IP
@@ -22,6 +22,8 @@ resource "google_compute_instance" "guestbook_web" {
     scopes = ["cloud-platform"]
     email  = "${google_service_account.guestbook-web-sa.email}"
   }
+
+  depends_on = ["google_compute_shared_vpc_service_project.service_guestbook"]
 }
 
 resource "google_compute_instance" "guestbook_app" {
@@ -37,7 +39,7 @@ resource "google_compute_instance" "guestbook_app" {
   }
 
   network_interface {
-    subnetwork = "projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/app-tier-subnet"
+    subnetwork = "${google_compute_subnetwork.app_tier_subnet.self_link}"
 
     access_config {
       // Ephemeral IP
@@ -48,6 +50,8 @@ resource "google_compute_instance" "guestbook_app" {
     scopes = ["cloud-platform"]
     email  = "${google_service_account.guestbook-app-sa.email}"
   }
+
+  depends_on = ["google_compute_shared_vpc_service_project.service_guestbook"]
 }
 
 resource "google_compute_instance" "guestbook_db" {
@@ -63,7 +67,7 @@ resource "google_compute_instance" "guestbook_db" {
   }
 
   network_interface {
-    subnetwork = "projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/db-tier-subnet"
+    subnetwork = "${google_compute_subnetwork.db_tier_subnet.self_link}"
 
     access_config {
       // Ephemeral IP
@@ -74,4 +78,6 @@ resource "google_compute_instance" "guestbook_db" {
     scopes = ["cloud-platform"]
     email  = "${google_service_account.guestbook-db-sa.email}"
   }
+
+  depends_on = ["google_compute_shared_vpc_service_project.service_guestbook"]
 }

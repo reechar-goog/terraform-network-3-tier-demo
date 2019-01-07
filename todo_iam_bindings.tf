@@ -1,90 +1,71 @@
-module "todo_project_iam_bindings" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
-
-  projects = ["${google_project.demo_todo_project.project_id}"]
-
-  bindings = {
-    "roles/viewer" = [
-      "group:todo-eng@reechar.co",
-    ]
-
-    "roles/compute.instanceAdmin.v1" = [
-      "group:todo-eng@reechar.co",
-    ]
-  }
+resource "google_project_iam_member" "todo_project_view" {
+  project = "${google_project.demo_todo_project.project_id}"
+  role    = "roles/viewer"
+  member  = "group:${var.todo_eng_email}"
 }
 
-module "todo_web_subnet_iam_binding" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
-
-  subnets = ["projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/web-tier-subnet"]
-
-  bindings = {
-    "roles/compute.networkUser" = [
-      "group:todo-web-dev@reechar.co",
-    ]
-  }
+resource "google_project_iam_member" "todo_project_compute" {
+  project = "${google_project.demo_todo_project.project_id}"
+  role    = "roles/compute.instanceAdmin.v1"
+  member  = "group:${var.todo_eng_email}"
 }
 
-module "todo_web_sa_iam_binding" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
+resource "google_compute_subnetwork_iam_binding" "todo-web-subnet" {
+  subnetwork = "${google_compute_subnetwork.web_tier_subnet.name}"
+  role       = "roles/compute.networkUser"
+  project    = "${google_project.xpn_host_project.project_id}"
+  region     = "us-east1"
 
-  project          = "${google_project.demo_todo_project.project_id}"
-  service_accounts = ["${google_service_account.todo-web-sa.email}"]
-
-  bindings = {
-    "roles/iam.serviceAccountUser" = [
-      "group:todo-web-dev@reechar.co",
-    ]
-  }
+  members = [
+    "group:${var.todo_web_email}",
+  ]
 }
 
-module "todo_app_subnet_iam_binding" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
+resource "google_service_account_iam_binding" "todo-web-sa" {
+  service_account_id = "projects/${google_project.demo_todo_project.project_id}/serviceAccounts/${google_service_account.todo-web-sa.email}"
+  role               = "roles/iam.serviceAccountUser"
 
-  subnets = ["projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/app-tier-subnet"]
-
-  bindings = {
-    "roles/compute.networkUser" = [
-      "group:todo-app-dev@reechar.co",
-    ]
-  }
+  members = [
+    "group:${var.todo_web_email}",
+  ]
 }
 
-module "todo_app_sa_iam_binding" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
+resource "google_compute_subnetwork_iam_binding" "todo-app-subnet" {
+  subnetwork = "${google_compute_subnetwork.app_tier_subnet.name}"
+  role       = "roles/compute.networkUser"
+  project    = "${google_project.xpn_host_project.project_id}"
+  region     = "us-east1"
 
-  project          = "${google_project.demo_todo_project.project_id}"
-  service_accounts = ["${google_service_account.todo-app-sa.email}"]
-
-  bindings = {
-    "roles/iam.serviceAccountUser" = [
-      "group:todo-app-dev@reechar.co",
-    ]
-  }
+  members = [
+    "group:${var.todo_app_email}",
+  ]
 }
 
-module "todo_db_subnet_iam_binding" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
+resource "google_service_account_iam_binding" "todo-app-sa" {
+  service_account_id = "projects/${google_project.demo_todo_project.project_id}/serviceAccounts/${google_service_account.todo-app-sa.email}"
+  role               = "roles/iam.serviceAccountUser"
 
-  subnets = ["projects/reechar-3t-demo-xpn/regions/us-east1/subnetworks/db-tier-subnet"]
-
-  bindings = {
-    "roles/compute.networkUser" = [
-      "group:todo-db-dev@reechar.co",
-    ]
-  }
+  members = [
+    "group:${var.todo_app_email}",
+  ]
 }
 
-module "todo_db_sa_iam_binding" {
-  source = "github.com/terraform-google-modules/terraform-google-iam"
+resource "google_compute_subnetwork_iam_binding" "todo-db-subnet" {
+  subnetwork = "${google_compute_subnetwork.db_tier_subnet.name}"
+  role       = "roles/compute.networkUser"
+  project    = "${google_project.xpn_host_project.project_id}"
+  region     = "us-east1"
 
-  project          = "${google_project.demo_todo_project.project_id}"
-  service_accounts = ["${google_service_account.todo-db-sa.email}"]
+  members = [
+    "group:${var.todo_db_email}",
+  ]
+}
 
-  bindings = {
-    "roles/iam.serviceAccountUser" = [
-      "group:todo-db-dev@reechar.co",
-    ]
-  }
+resource "google_service_account_iam_binding" "todo-db-sa" {
+  service_account_id = "projects/${google_project.demo_todo_project.project_id}/serviceAccounts/${google_service_account.todo-db-sa.email}"
+  role               = "roles/iam.serviceAccountUser"
+
+  members = [
+    "group:${var.todo_db_email}",
+  ]
 }
